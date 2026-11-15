@@ -1,0 +1,185 @@
+# quiz.py
+import json
+import os
+import random
+
+class Quiz:
+    def __init__(self, question, options, answer):
+        self.question = question    # 문제
+        self.options = options      # 보기 리스트
+        self.answer = answer        # 정답 번호 (1~4)
+
+    def to_dict(self):
+        """Quiz 객체를 딕셔너리로 변환 (JSON 저장용)"""
+        return {
+            "question": self.question,
+            "options": self.options,
+            "answer": self.answer
+        }
+
+    @staticmethod
+    def from_dict(data):
+        """딕셔너리를 Quiz 객체로 변환 (JSON 불러오기용)"""
+        return Quiz(data["question"], data["options"], data["answer"])
+
+
+class QuizGame:
+    STATE_FILE = "state.json"
+
+    def __init__(self):
+        self.quizzes = []       # Quiz 객체 리스트
+        self.high_score = 0     # 최고 점수
+        self.load_state()       # 프로그램 시작 시 저장 데이터 불러오기
+
+    # ────────────────────────────────
+    # 파일 저장 / 불러오기
+    # ────────────────────────────────
+    def load_state(self):
+        """state.json에서 퀴즈 목록과 최고 점수를 불러온다."""
+        if os.path.exists(self.STATE_FILE):
+            with open(self.STATE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            self.quizzes = [Quiz.from_dict(q) for q in data.get("quizzes", [])]
+            self.high_score = data.get("high_score", 0)
+        else:
+            self._init_default_quizzes()
+            self.save_state()
+
+    def save_state(self):
+        """퀴즈 목록과 최고 점수를 state.json에 저장한다."""
+        data = {
+            "quizzes": [q.to_dict() for q in self.quizzes],
+            "high_score": self.high_score
+        }
+        with open(self.STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+    def _init_default_quizzes(self):
+        """기본 퀴즈 5개를 초기 데이터로 등록한다."""
+        default = [
+            Quiz(
+                "닌텐도에서 2026년 11월 5일에 발매한, 젤다의 전설 40주년 기념 리메이크 작은?",
+                ["브레스 오브 더 와일드", "몽환의 모래시계", "시간의 오카리나", "무쥬라의 가면"],
+                3
+            ),
+            Quiz(
+                "'드레스 메이커'는 기존에 액션 게임을 만들던 개발사에서 출시한 드레스 만들기 게임입니다. "
+                "다음 중 제작자가 드레스 메이커라는 게임을 만들고자 한 동기는?",
+                ["예쁜 드레스를 만들고 싶어서.", "많은 돈을 벌기 위해서.",
+                 "예쁜 드레스를 입고 싶어서.", "질병으로 인해 의상 디자이너 일을 못하는 아내를 위해서."],
+                4
+            ),
+            Quiz(
+                "농장 시뮬레이션 게임 '스타듀밸리'의 개발 인원 수는?",
+                ["1명", "2명", "10명", "100명"],
+                1
+            ),
+            Quiz(
+                "국내 게임 제작사 '에피드게임즈'는 한 때 개발비에 허덕여, 개발비를 충원하기 위해 "
+                "회사의 대표가 큰 선택을 했습니다... 다음 중 대표가 담보로 건 것은?",
+                ["콩팥", "집문서", "새끼손가락", "1억원 수표"],
+                2
+            ),
+            Quiz(
+                "게임 제작자가 게임의 무료 체험판을 배포하는 일은 아주 흔합니다. 하지만 최근에 들어선 "
+                "아예 예정되어있던 체험판도 철회하는 일이 잦습니다. "
+                "다음 중 게임 제작자가 무료 체험판의 배포를 철회하는 이유는 무엇일까요.",
+                ["별도 버전 제작 및 유지보수 부담으로 인해서.", "많은 돈을 벌기 위해서.",
+                 "AI로 게임 내 코드를 복제한 모방작을 우려하여.", "게임 개발 자체가 철회되어서."],
+                3
+            ),
+        ]
+        self.quizzes = default
+
+    # ────────────────────────────────
+    # 기능별 메서드
+    # ────────────────────────────────
+    def play_quiz(self):
+        """퀴즈 풀기"""
+        if not self.quizzes:
+            print("\n등록된 퀴즈가 없습니다.")
+            return
+
+        questions = random.sample(self.quizzes, len(self.quizzes))
+        score = 0
+
+        print("\n" + "="*40)
+        print("        퀴즈 시작!")
+        print("="*40)
+
+        for i, quiz in enumerate(questions, 1):
+            print(f"\nQ{i}. {quiz.question}")
+            for j, option in enumerate(quiz.options, 1):
+                print(f"  {j}) {option}")
+
+            while True:
+                try:
+                    ans = int(input("정답 번호를 입력하세요: "))
+                    if 1 <= ans <= 4:
+                        break
+                    print("1~4 사이의 번호를 입력하세요.")
+                except ValueError:
+                    print("숫자를 입력하세요.")
+
+            if ans == quiz.answer:
+                print("✅ 정답입니다!")
+                score += 1
+            else:
+                print(f"❌ 오답입니다! 정답은 {quiz.answer}번이에요.")
+
+        print("\n" + "="*40)
+        print(f"최종 점수: {score} / {len(questions)}")
+
+        if score > self.high_score:
+            self.high_score = score
+            print("🏆 새로운 최고 점수입니다!")
+            self.save_state()
+
+        print("="*40)
+
+    def add_quiz(self):
+        """퀴즈 추가"""
+        print("\n" + "="*40)
+        print("        퀴즈 추가")
+        print("="*40)
+
+        question = input("문제를 입력하세요: ").strip()
+        options = []
+        for i in range(1, 5):
+            opt = input(f"{i}번 보기를 입력하세요: ").strip()
+            options.append(opt)
+
+        while True:
+            try:
+                answer = int(input("정답 번호 (1~4): "))
+                if 1 <= answer <= 4:
+                    break
+                print("1~4 사이의 번호를 입력하세요.")
+            except ValueError:
+                print("숫자를 입력하세요.")
+
+        self.quizzes.append(Quiz(question, options, answer))
+        self.save_state()
+        print("✅ 퀴즈가 추가되었습니다!")
+
+    def show_quiz_list(self):
+        """퀴즈 목록 출력"""
+        print("\n" + "="*40)
+        print("        퀴즈 목록")
+        print("="*40)
+
+        if not self.quizzes:
+            print("등록된 퀴즈가 없습니다.")
+            return
+
+        for i, quiz in enumerate(self.quizzes, 1):
+            print(f"\nQ{i}. {quiz.question}")
+            for j, option in enumerate(quiz.options, 1):
+                print(f"  {j}) {option}")
+            print(f"  정답: {quiz.answer}번")
+
+    def show_high_score(self):
+        """최고 점수 출력"""
+        print("\n" + "="*40)
+        print(f"  🏆 최고 점수: {self.high_score} / {len(self.quizzes)}")
+        print("="*40)
