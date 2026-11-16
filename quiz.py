@@ -27,32 +27,44 @@ class QuizGame:
     STATE_FILE = "state.json"
 
     def __init__(self):
-        self.quizzes = []       # Quiz 객체 리스트
-        self.high_score = 0     # 최고 점수
-        self.load_state()       # 프로그램 시작 시 저장 데이터 불러오기
+        self.quizzes = []
+        self.high_score = 0
+        self.load_state()
 
     # ────────────────────────────────
     # 파일 저장 / 불러오기
     # ────────────────────────────────
     def load_state(self):
         """state.json에서 퀴즈 목록과 최고 점수를 불러온다."""
-        if os.path.exists(self.STATE_FILE):
+        if not os.path.exists(self.STATE_FILE):
+            # 파일 없음 → 기본 데이터 사용
+            self._init_default_quizzes()
+            self.save_state()
+            return
+
+        try:
             with open(self.STATE_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
             self.quizzes = [Quiz.from_dict(q) for q in data.get("quizzes", [])]
             self.high_score = data.get("high_score", 0)
-        else:
+        except (json.JSONDecodeError, KeyError):
+            # 파일 손상 → 기본 데이터로 복구
+            print("⚠️ 저장 파일이 손상되었습니다. 기본 데이터로 초기화합니다.")
             self._init_default_quizzes()
+            self.high_score = 0
             self.save_state()
 
     def save_state(self):
         """퀴즈 목록과 최고 점수를 state.json에 저장한다."""
-        data = {
-            "quizzes": [q.to_dict() for q in self.quizzes],
-            "high_score": self.high_score
-        }
-        with open(self.STATE_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        try:
+            data = {
+                "quizzes": [q.to_dict() for q in self.quizzes],
+                "high_score": self.high_score
+            }
+            with open(self.STATE_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except OSError as e:
+            print(f"⚠️ 파일 저장 중 오류가 발생했습니다: {e}")
 
     def _init_default_quizzes(self):
         """기본 퀴즈 5개를 초기 데이터로 등록한다."""
@@ -92,6 +104,47 @@ class QuizGame:
         self.quizzes = default
 
     # ────────────────────────────────
+    # 공통 입력 처리 헬퍼
+    # ────────────────────────────────
+    def _input_number(self, prompt, min_val, max_val):
+        """
+        숫자 입력을 받는 공통 메서드.
+        - 빈 입력, 공백, 숫자 변환 실패, 범위 밖 모두 처리
+        - KeyboardInterrupt / EOFError 는 호출부(main.py)에서 처리
+        """
+        while True:
+            raw = input(prompt)
+            stripped = raw.strip()
+
+            if stripped == "":
+                print("⚠️ 값을 입력해주세요.")
+                continue
+
+            try:
+                num = int(stripped)
+            except ValueError:
+                print(f"⚠️ 숫자를 입력해주세요. (예: {min_val})")
+                continue
+
+            if not (min_val <= num <= max_val):
+                print(f"⚠️ {min_val}~{max_val} 사이의 번호를 입력하세요.")
+                continue
+
+            return num
+
+    def _input_text(self, prompt):
+        """
+        텍스트 입력을 받는 공통 메서드.
+        - 빈 입력 방지
+        """
+        while True:
+            raw = input(prompt).strip()
+            if raw == "":
+                print("⚠️ 내용을 입력해주세요.")
+                continue
+            return raw
+
+    # ────────────────────────────────
     # 기능별 메서드
     # ────────────────────────────────
     def play_quiz(self):
@@ -112,14 +165,7 @@ class QuizGame:
             for j, option in enumerate(quiz.options, 1):
                 print(f"  {j}) {option}")
 
-            while True:
-                try:
-                    ans = int(input("정답 번호를 입력하세요: "))
-                    if 1 <= ans <= 4:
-                        break
-                    print("1~4 사이의 번호를 입력하세요.")
-                except ValueError:
-                    print("숫자를 입력하세요.")
+            ans = self._input_number("정답 번호를 입력하세요: ", 1, 4)
 
             if ans == quiz.answer:
                 print("✅ 정답입니다!")
@@ -143,20 +189,13 @@ class QuizGame:
         print("        퀴즈 추가")
         print("="*40)
 
-        question = input("문제를 입력하세요: ").strip()
+        question = self._input_text("문제를 입력하세요: ")
         options = []
         for i in range(1, 5):
-            opt = input(f"{i}번 보기를 입력하세요: ").strip()
+            opt = self._input_text(f"{i}번 보기를 입력하세요: ")
             options.append(opt)
 
-        while True:
-            try:
-                answer = int(input("정답 번호 (1~4): "))
-                if 1 <= answer <= 4:
-                    break
-                print("1~4 사이의 번호를 입력하세요.")
-            except ValueError:
-                print("숫자를 입력하세요.")
+        answer = self._input_number("정답 번호 (1~4): ", 1, 4)
 
         self.quizzes.append(Quiz(question, options, answer))
         self.save_state()
@@ -181,5 +220,8 @@ class QuizGame:
     def show_high_score(self):
         """최고 점수 출력"""
         print("\n" + "="*40)
-        print(f"  🏆 최고 점수: {self.high_score} / {len(self.quizzes)}")
+        if self.high_score == 0:
+            print("  아직 퀴즈를 풀지 않았습니다.")
+        else:
+            print(f"  🏆 최고 점수: {self.high_score} / {len(self.quizzes)}")
         print("="*40)
