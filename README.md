@@ -19,9 +19,15 @@
 - 최종 점수 및 결과 메시지 출력
 - 퀴즈 종료 후 재시작 여부 선택
 
-🛠️ 개발 환경
-Python 3.12 (64-bit)
-터미널 : PowerShell
+## 🛠️ 개발 환경
+
+- **운영체제:** Windows 11, 버전 26H2 (OS 빌드 26300.9974)
+- **프로그래밍 언어:** Python 3.12.10 (64-bit)
+- **개발 도구:** Visual Studio Code 1.146.0 (64-bit)
+- **터미널:** Windows PowerShell 5.1.26100.9818
+- **버전 관리 도구:** Git 2.56.0.windows.4
+
+![개발 환경 및 프로그램 버전 확인](docs/images/os%20version_image.png)
 
 ## ▶️ 실행 방법
 1. 이 저장소를 클론합니다.
@@ -42,19 +48,33 @@ cd python-quiz-game
 python main.py
 ```
 
-🗂️ 파일 구조
+## 🗂️ 파일 구조
+
+```text
 python-quiz-game/
 │
-├── main.py       # 게임 실행 메인 파일
-├── quiz.py       # 퀴즈 관련 클래스 및 기능 구현 파일
-├── .gitignore    # Git 추적 제외 파일 및 폴더 설정
-└── README.md     # 프로젝트 설명 파일
+├── main.py                  # 게임 실행 메인 파일
+├── quiz.py                  # 퀴즈 관련 클래스 및 기능 구현 파일
+├── .gitignore               # Git 추적 제외 파일 및 폴더 설정
+├── README.md                # 프로젝트 설명 파일
+│
+└── docs/
+    └── images/              # README 및 과제 증빙에 사용하는 이미지 파일
+        ├── menu-execution.png
+        ├── git-commit-history.png
+        ├── git-branch-merge.png
+        ├── git-clone.png
+        ├── git-pull.png
+        └── os version_image.png
+```
 
-📂 데이터 파일 설명
-파일명	설명
-main.py	게임 시작, 흐름 제어, 결과 출력 담당
-quiz_data.py	퀴즈 문제, 보기, 정답을 리스트로 저장
-utils.py	점수 계산, 입력 검증 등 보조 기능 담당
+## 📂 폴더 및 파일 설명
+
+- `main.py`: 프로그램 실행 및 메인 메뉴 처리
+- `quiz.py`: Quiz와 QuizGame 클래스 및 퀴즈 관련 기능 구현
+- `.gitignore`: Git에서 추적하지 않을 파일 및 폴더 지정
+- `README.md`: 프로젝트 개요, 실행 방법, 기능 및 개발 과정 설명
+- `docs/images/`: 프로그램 실행 화면과 Git 작업 과정 등 과제 제출에 필요한 이미지 보관
 
 ## 🖥️ 프로그램 실행 화면
 
