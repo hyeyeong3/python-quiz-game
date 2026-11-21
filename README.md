@@ -110,6 +110,22 @@ utils.py	점수 계산, 입력 검증 등 보조 기능 담당
 
 이처럼 `Quiz` 클래스는 개별 퀴즈 데이터를 담당하고, `QuizGame` 클래스는 여러 퀴즈를 활용한 게임 진행과 전체 관리를 담당하도록 역할을 분리하였다.
 
+## 🔄 Git clone 및 pull 실습
+
+GitHub 저장소를 로컬 컴퓨터에 복제하는 `git clone` 명령어와 원격 저장소의 최신 변경 사항을 가져오는 `git pull` 명령어를 직접 실행하였다.
+
+### 1. Git clone 실습
+
+`git clone` 명령어를 사용하여 GitHub 저장소를 로컬 컴퓨터에 복제하였다.
+
+![Git clone 실행 화면](docs/images/git-clone.png)
+
+### 2. Git pull 실습
+
+복제한 저장소에서 `git pull origin main` 명령어를 실행하여 원격 저장소의 변경 사항을 정상적으로 가져오는 것을 확인하였다.
+
+![Git pull 실행 화면](docs/images/git-pull.png)
+
 ## 🔧 함수 및 메서드의 책임 분리
 
 ## 🔄 프로그램 실행 흐름
